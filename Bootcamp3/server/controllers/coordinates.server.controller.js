@@ -10,20 +10,33 @@ module.exports = function(req, res, next) {
       var addressTemp2 = addressTemp.toLowerCase();
       var addressTemp3 = addressTemp2.replace(/\s/g, "%20");
       var addressTemp4 = addressTemp3.replace(/,/g , "%2C");
-      
     //Setup your options q and key are provided. Feel free to add others to make the JSON response less verbose and easier to read 
     var options = { 
       q: addressTemp4,
       key: config.openCage.key,  
     }
-
+    console.log('hit coordinates controller')
     //Setup your request using URL and options - see ? for format
     request({
       url: 'https://api.opencagedata.com/geocode/v1/json', 
       qs: options
       }, function(error, response, body) {
-        //For ideas about response and error processing see https://opencagedata.com/tutorials/geocode-in-nodejs
+        if (error) {
+          console.log('error for coordinates')
+          res.status(500).send(error)
+        }
         
+
+        //For ideas about response and error processing see https://opencagedata.com/tutorials/geocode-in-nodejs
+        // console.log(error)
+        // console.log(response)
+        var thebody = JSON.parse(body)
+        // if (thebody.status.code != 200) {
+        //   res.status(500).send(error)
+        // }
+        console.log(thebody.status.code)
+        console.log(thebody.results[0].geometry)
+        req.results = thebody.results[0].geometry
         //JSON.parse to get contents. Remember to look at the response's JSON format in open cage data
         
         /*Save the coordinates in req.results -> 

@@ -55,27 +55,46 @@ exports.read = function(req, res) {
 
 /* Update a listing - note the order in which this function is called by the router*/
 exports.update = function(req, res) {
-  var listing = req.listing;
-
-  /* Replace the listings's properties with the new properties found in req.body */
- 
-  /*save the coordinates (located in req.results if there is an address property) */
- 
-  /* Save the listing */
-
+  
+  var updatelisting = new Listing(req.body);
+  if(req.results) {
+    updatelisting.coordinates = {
+      latitude: req.results.lat, 
+      longitude: req.results.lng
+    };
+  }
+  updatelisting.save(function(err) {
+    if(err) {
+      console.log(err);
+      res.status(400).send(err);
+    } else {
+      res.json(updatelisting);
+      console.log(updatelisting)
+    }
+  });
 };
 
 /* Delete a listing */
 exports.delete = function(req, res) {
   var listing = req.listing;
-
+  Listing.findOneAndRemove({id: listing.id}, (err, entry) => {
+    if (err) res.status(500).send(err);
+    else res.status(200).send(entry);
+  })
   /* Add your code to remove the listins */
 
 };
 
 /* Retreive all the directory listings, sorted alphabetically by listing code */
 exports.list = function(req, res) {
-  /* Add your code */
+  Listing.find({}, function (err, users) {
+    if (err) res.status(500).send(err)
+    users.sort((x, y) => {
+      return x.name.localeCompare(y.name);
+    })
+    console.log(users.length)
+    res.status(200).send(users)
+  })
 };
 
 /* 
@@ -88,8 +107,10 @@ exports.list = function(req, res) {
 exports.listingByID = function(req, res, next, id) {
   Listing.findById(id).exec(function(err, listing) {
     if(err) {
+      console.log('error on listing by id')
       res.status(400).send(err);
     } else {
+      console.log('worked for listing by id')
       req.listing = listing;
       next();
     }
